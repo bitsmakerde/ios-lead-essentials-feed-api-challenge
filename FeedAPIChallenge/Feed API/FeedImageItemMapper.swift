@@ -17,6 +17,7 @@ internal enum FeedImageItemMapper {
 		}
 	}
 
+	// decoupling RemoteAPI from internal impelemtion
 	private struct Item: Decodable {
 		var image_id: UUID
 		var image_desc: String?
