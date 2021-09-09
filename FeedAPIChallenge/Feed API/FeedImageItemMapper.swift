@@ -9,7 +9,7 @@
 import Foundation
 
 internal enum FeedImageItemMapper {
-	struct Root: Decodable {
+	private struct Root: Decodable {
 		let items: [Item]
 
 		var feedImages: [FeedImage] {
@@ -17,7 +17,7 @@ internal enum FeedImageItemMapper {
 		}
 	}
 
-	struct Item: Decodable {
+	private struct Item: Decodable {
 		var image_id: UUID
 		var image_desc: String?
 		var image_loc: String?
@@ -28,8 +28,11 @@ internal enum FeedImageItemMapper {
 		}
 	}
 
-//	func map(data: Data) -> [FeedImage] {
-//
-//		return []
-//	}
+	internal static func map(_ data: Data, response: HTTPURLResponse) -> RemoteFeedLoader.Result {
+		guard response.statusCode == 200, let dataAsJson = try? JSONDecoder().decode(Root.self, from: data) else {
+			return .failure(RemoteFeedLoader.Error.invalidData)
+		}
+
+		return .success(dataAsJson.feedImages)
+	}
 }

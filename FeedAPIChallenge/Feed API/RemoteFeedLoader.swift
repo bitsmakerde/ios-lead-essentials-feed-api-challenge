@@ -13,21 +13,20 @@ public final class RemoteFeedLoader: FeedLoader {
 		case invalidData
 	}
 
+	public typealias Result = FeedLoader.Result
+
 	public init(url: URL, client: HTTPClient) {
 		self.url = url
 		self.client = client
 	}
 
 	public func load(completion: @escaping (FeedLoader.Result) -> Void) {
-		client.get(from: url, completion: { result in
+		// self [weak self] for memory leak, then the RemoteFeedLoad died at running
+		client.get(from: url, completion: { [weak self] result in
+			guard self != nil else { return }
 			switch result {
 			case let .success((data, response)):
-				if response.statusCode == 200, let dataAsJson = try? JSONDecoder().decode(FeedImageItemMapper.Root.self, from: data) {
-					print(dataAsJson.feedImages)
-					completion(.success(dataAsJson.feedImages))
-				} else {
-					completion(.failure(Error.invalidData))
-				}
+				completion(FeedImageItemMapper.map(data, response: response))
 			case .failure:
 				completion(.failure(Error.connectivity))
 			}
